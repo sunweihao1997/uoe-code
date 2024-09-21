@@ -4,7 +4,7 @@ This script is to plot the moisture flux and vertical moisture flux convergence
 
 file information:
 1. Moisture transportation (vector)
-/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc
+/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc
 shape (1883,29,96,144)
 
 2. Moisture flux vertical convergence (shading)
@@ -15,7 +15,8 @@ shape (1883,96,144)
 1. Previous calculation has error due to the start time of the result is 1850-02-01
 2. The modification is to replace the wrong JJA to the JJAS with dt.month method
 
-v
+v4 modified:
+move to huaibei server
 '''
 import xarray as xr
 import numpy as np
@@ -28,15 +29,15 @@ import cartopy.crs as ccrs
 import cartopy
 from cartopy.util import add_cyclic_point
 import matplotlib.pyplot as plt
-sys.path.append('/exports/csce/datastore/geos/users/s2618078/uoe-code/module/')
+sys.path.append('/home/sun/uoe-code/module/')
 from module_sun import set_cartopy_tick
 from module_sun import check_path, add_vector_legend
 import concurrent.futures
-import cmasher as cmr
+#import cmasher as cmr
 import matplotlib.patches as mpatches
 from scipy.ndimage import gaussian_filter
 
-ref_file0 = xr.open_dataset("/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc")
+ref_file0 = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc")
 
 # select two period to calculate difference
 class period:
@@ -46,7 +47,7 @@ class period:
 class calculate_class:
     def cal_jjas_mean(file_path, file_name, var_name, exp_name, dim_num):
         '''This function calculate JJA mean for the data, which has been cdo cat and Ensemble_Mean'''
-        ref_file0 = xr.open_dataset("/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc")
+        ref_file0 = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc")
         file0     = xr.open_dataset(file_path + file_name)
         
         # === Claim 150 year array ===
@@ -146,7 +147,7 @@ class paint_class:
         extent     =  [lonmin,lonmax,latmin,latmax]
 
         # --- Tick setting ---
-        set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(60, 130, 8,dtype=int), yticks=np.linspace(0, 40, 5, dtype=int),nx=1,ny=1,labelsize=25)
+        set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=20)
 
 
         level0 = np.array([-1.5, -1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1, 1.5])
@@ -159,9 +160,9 @@ class paint_class:
                                 transform=ccrs.PlateCarree()))
 
         #plt.rcParams.update({'hatch.color': 'gray'})
-        dot  =  ax.contourf(f0['lon'].data, f0['lat'].data, pvalue, levels=[0., 0.2], colors='none', hatches=['//'])
+        dot  =  ax.contourf(f0['lon'].data, f0['lat'].data, pvalue, levels=[0., 0.13], colors='none', hatches=['/'])
 
-        ax.coastlines(resolution='50m', lw=1.5)
+        ax.coastlines(resolution='110m', lw=1.5)
 
         #ax.plot([40,120],[0,0],'--', color='gray')
 
@@ -183,7 +184,7 @@ class paint_class:
         cb.ax.set_xticks(level0)
         cb.ax.tick_params(labelsize=15)
 
-        plt.savefig('/exports/csce/datastore/geos/users/s2618078/paint/analysis_EU_aerosol_climate_effect/ERL/{}_period_diff_JJA_Indian_UV.pdf'.format(plot_name), dpi=500)
+        plt.savefig('/home/sun/paint/ERL/{}_period_diff_JJA_Indian_UV.pdf'.format(plot_name), dpi=350)
 
         #ax.remove()
 
@@ -213,7 +214,7 @@ def calculate_student_t_test(ncfile, period1, period2, lat, lon):
 
 def main():
     # ================= 1. Calculate JJA mean ========================
-#    path0 = '/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/'
+#    path0 = '/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/'
 #    path1 = '/exports/csce/datastore/geos/groups/aerosol/sabineCESM/inp_sun/'
 #    with concurrent.futures.ProcessPoolExecutor() as executor:
 #        a1 = executor.submit(calculate_class.cal_jjas_mean, file_path=path0, 
@@ -280,14 +281,14 @@ def main():
 #    print(" =========== Successfully calculate the period difference ===============")
 #    # =================== 3. Calculate the ttest =====================================
 #    ncfile.attrs['description']  =  "Created on 2023-10-25, This script save the array of the difference in long-term trend among the two experiments. 2023-12-1 update: Correct the wrong time selecting using dt.month method and change to the JJAS mean. 2023-12-3 update: Add ttest among the experiments for the period 1945-1960 fot the vertical integral of moisture transportation."
-#    ncfile.to_netcdf("/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend.nc")
+#    ncfile.to_netcdf("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend.nc")
 #
 #
 #
 #
     # =================== 4. Paint the picture =======================================
     # 3.1 Collect the information
-    file0 = xr.open_dataset("/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend.nc")
+    file0 = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend.nc")
     #print(np.nanmax(file0["transport_y_BTAL_diff"].data))  unit：g m-1 s-1 hPa-1
     #print(np.nanmin(file0["transport_y_BTAL_diff"].data))
     #print(np.nanmax(file0["mt_vint_BTAL_diff"].data))      unit: g m-2 s-1

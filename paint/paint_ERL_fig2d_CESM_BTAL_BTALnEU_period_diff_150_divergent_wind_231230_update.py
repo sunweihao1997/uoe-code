@@ -61,11 +61,11 @@ def paint_jjas_diff(u, v, div, p, out_name, left_title, right_title, tlat):
 
     # Tick setting
     # --- Set range ---
-    lonmin,lonmax,latmin,latmax  =  55, 105, 0, 35
+    lonmin,lonmax,latmin,latmax  =  55, 125, 5, 40
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(60, 100, 5,dtype=int), yticks=np.linspace(0, 40, 5, dtype=int),nx=1,ny=1,labelsize=15)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(60, 130, 8,dtype=int), yticks=np.linspace(0, 40, 5, dtype=int),nx=1,ny=1,labelsize=25)
 
 
     # contourf for the geopotential height
