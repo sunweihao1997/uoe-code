@@ -31,7 +31,7 @@ data = xr.open_dataset(data_path + data_file)
 lat  = data.lat.data
 lon  = data.lon.data
 
-start0 = 1903 ; end0 = 1957
+start0 = 1901 ; end0 = 1955
 data_01to55 = data.sel(time=slice(start0, end0))
 
 jja_trend  = np.zeros((len(lat), len(lon)))
@@ -41,13 +41,15 @@ jjas_p = np.zeros((len(lat), len(lon)))
 
 for i in range(len(lat)):
     for j in range(len(lon)):
-        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), data_01to55['PRECT_JJA_BTAL'].data[:, i, j])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(start0, end0, end0 - start0 + 1), data_01to55['PRECT_JJA_BTAL'].data[:, i, j])
         jja_trend[i, j]  = slope
         jja_p[i, j]      = p_value
 
-        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), data_01to55['PRECT_JJAS_BTAL'].data[:, i, j])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(start0, end0, end0 - start0 + 1), data_01to55['PRECT_JJAS_BTAL'].data[:, i, j])
         jjas_trend[i, j] = slope
         jjas_p[i, j]     = p_value
+
+
 
 # Write trend into file
 ncfile  =  xr.Dataset(
@@ -102,13 +104,13 @@ def plot_diff_rainfall(diff_data, left_title, right_title, out_path, pic_name, l
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=15)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=25)
 
     # Shading for precipitation trend
     im  =  ax.contourf(lon, lat, diff_data, levels=level, cmap=newcmp, alpha=1, extend='both')
 
 #    # Stippling picture
-    sp  =  ax.contourf(lon, lat, p, levels=[0., 0.12], colors='none', hatches=['.'])
+    sp  =  ax.contourf(lon, lat, p, levels=[0., 0.20], colors='none', hatches=['.'])
 
     # --- Coast Line ---
     ax.coastlines(resolution='50m', lw=1.5)
@@ -139,7 +141,7 @@ def main():
     lev0 = np.linspace(-0.1, .1, 11)
     #plot_diff_rainfall(diff_data=prect_BTAL_JJA_DIFF, left_title='BTAL', right_title='JJA', out_path=out_path, pic_name="Aerosol_research_CESM_prect_BTAL_JJA_period_difference_1900_1960_231221.pdf")
     #plot_diff_rainfall(diff_data=prect_BTALnEU_JJA_DIFF,  left_title='BTALnEU', right_title='JJA',  out_path=out_path, pic_name="Aerosol_research_CESM_prect_BTALnEU_JJA_period_difference_1900_1960_231221.pdf")
-    plot_diff_rainfall(diff_data=gaussian_filter(ncfile['JJAS_trend'].data * 10, sigma=0.5), left_title='(c)', right_title='CESM_ALL (JJAS)', out_path=out_path, pic_name="ERL_fig1c_v3_CESM_prect_BTAL_JJAS_linear_trend_1901to1955.pdf", level=lev0, p=ncfile['JJAS_p'].data)
+    plot_diff_rainfall(diff_data=gaussian_filter(ncfile['JJA_trend'].data * 10, sigma=0.5), left_title='(c)', right_title='CESM_ALL (JJAS)', out_path=out_path, pic_name="ERL_fig1c_v3_CESM_prect_BTAL_JJA_linear_trend_1901to1955.pdf", level=lev0, p=ncfile['JJA_p'].data)
 #    plot_diff_rainfall(diff_data=prect_BTALnEU_JJAS_DIFF, left_title='(b)', right_title='CESM_noEU (JJAS)', out_path=out_path, pic_name="Aerosol_research_CESM_prect_BTALnEU_JJAS_period_difference_1900_1960_231221.pdf", p=p_value_BTALnEU)
 #    plot_diff_rainfall(diff_data=(prect_BTAL_JJAS_DIFF - prect_BTALnEU_JJAS_DIFF), left_title='(d)', right_title='CESM_ALL - CESM_noEU (JJAS)', out_path=out_path, pic_name="ERL_fig1d_CESM_prect_BTAL_sub_BTALnEU_JJAS_period_difference_1900_1960_231227.pdf", p=p_value_BTAL_BTALnEU)
 

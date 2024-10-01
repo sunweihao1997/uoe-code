@@ -20,69 +20,14 @@ module_path = '/home/sun/uoe-code/module/'
 sys.path.append(module_path)
 from module_sun import *
 
-# =================== File Location =============================
-
-file_path = '/home/sun/data/download_data/CRU/precipitation/'
-file_name = 'cru_ts4.08.1901.2023.pre.dat.nc'
-
-f0        = xr.open_dataset(file_path + file_name)
-#print(f0)
-
-#print(time)
-varname   = 'pre'
-
-# ===============================================================
-
-# Interpolate into the CESM resolution
-ref_file  = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/CESM_PRECT_BTAL_BTALnEU_JJA_JJAS_1850_2006.nc")
-#f0        = f0.interp(lat=ref_file.lat.data, lon=ref_file.lon.data)
-
-lat       = f0.lat.data # 90 to -90
-lon       = f0.lon.data
-time      = f0.time.data # 1891 -01 -01
-
-
-# ================== Calculation for JJA / JJAS precipitation ================
-
-month0 = [6, 7, 8, 9] # JJAS
-month1 = [6, 7, 8] # JJA
-
-avg_JJAS = np.zeros((123, len(lat), len(lon)))
-avg_JJA  = np.zeros((123, len(lat), len(lon)))
-
-f0_JJAS  = f0.sel(time=f0.time.dt.month.isin(month0)) ; print(len(f0_JJAS.time.data)/len(month0))
-f0_JJA   = f0.sel(time=f0.time.dt.month.isin(month1)) ; print(len(f0_JJA.time.data)/len(month1))
-
-for mm in range(123):
-    avg_JJAS[mm] = np.average(f0_JJAS[varname].data[mm * len(month0) : (mm * len(month0) + len(month0))], axis=0)
-    avg_JJA[mm]  = np.average(f0_JJA[varname].data[mm * len(month1)  : (mm * len(month1) + len(month1))], axis=0)
-
-print('Both JJAS and JJA has been calculated!')
-
-ncfile  =  xr.Dataset(
-    {
-        "JJAS_PRECT": (["time", "lat", "lon"], avg_JJAS/31),
-        "JJA_PRECT":  (["time", "lat", "lon"], avg_JJA/31),
-    },
-    coords={
-        "time": (["time"], np.linspace(1901, 2023, 2023-1901+1)),
-        "lat":  (["lat"],  lat),
-        "lon":  (["lon"],  lon),
-    },
-    )
-
-ncfile["JJAS_PRECT"].attrs['units'] = 'mm day^-1'
-ncfile["JJA_PRECT"].attrs['units']  = 'mm day^-1'
-
-ncfile.attrs['description'] = 'Created on 2024-1-8.'
-ncfile.attrs['script'] = 'paint_ERL_figs2_v3_CRU_PRECT_linear_trend_240914.py on Huaibei'
-#
-out_path = '/home/sun/data/download_data/data/analysis_data/'
-ncfile.to_netcdf(out_path + 'Aerosol_Research_CRU_PRECT_JJA_JJAS_average.nc')
-
-# ================================================================================
-
 # ================ Calculation for 1901to1955 linear trend =======================
+#ncfile1 = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/UDEL_JJA_JJAS_precip_1900_2017.nc")
+
+ncfile  = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/UDEL_JJA_JJAS_precip_1900_2017.nc")
+
+#ncfile  = ncfile.interp(lat=ncfile1.lat.data, lon=ncfile1.lon.data)
+lat = ncfile.lat.data ; lon = ncfile.lon.data
+
 f_01to55 = ncfile.sel(time=slice(1901, 1955))
 ncfile.close()
 
@@ -93,11 +38,11 @@ jjas_p = np.zeros((len(lat), len(lon)))
 #print(jja_trend.shape)
 for i in range(len(lat)):
     for j in range(len(lon)):
-        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), f_01to55['JJA_PRECT'].data[:, i, j])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), f_01to55['PRECT_JJA'].data[:, i, j] * 10 / 31)
         jja_trend[i, j]  = slope
         jja_p[i, j]      = p_value
 
-        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), f_01to55['JJAS_PRECT'].data[:, i, j])
+        slope, intercept, r_value, p_value, std_err = stats.linregress(np.linspace(1, 55, 55), f_01to55['PRECT_JJAS'].data[:, i, j] * 10 / 31)
         jjas_trend[i, j] = slope
         jjas_p[i, j]     = p_value
 
@@ -122,7 +67,7 @@ ncfile.attrs['description'] = 'Created on 2024-7-7.'
 ncfile.attrs['script'] = 'paint_ERL_figs2_v3_CRU_PRECT_linear_trend_240914.py on Huaibei'
 #
 out_path = '/home/sun/data/download_data/data/analysis_data/'
-ncfile.to_netcdf(out_path + 'Aerosol_Research_CRU_PRECT_JJA_JJAS_linear_trend_1901to1955.nc')
+ncfile.to_netcdf(out_path + 'Aerosol_Research_UDEL_PRECT_JJA_JJAS_linear_trend_1901to1955.nc')
 
 
 #print(diff_precip_JJAS.shape) # (360, 720)
@@ -205,7 +150,7 @@ def paint_trend(lat, lon, diff, level, p, title_name, pic_path, pic_name):
 
 data_path = '/home/sun/data/download_data/data/analysis_data/'
 
-f0        = xr.open_dataset(data_path + 'Aerosol_Research_CRU_PRECT_JJA_JJAS_linear_trend_1901to1955.nc')
+f0        = xr.open_dataset(data_path + 'Aerosol_Research_UDEL_PRECT_JJA_JJAS_linear_trend_1901to1955.nc')
 
 lat       = f0.lat.data ; lon       = f0.lon.data
 
@@ -214,7 +159,7 @@ lat       = f0.lat.data ; lon       = f0.lon.data
 
 def main():
 #    pvalue = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/Aerosol_research_GPCC_JJAS_periods_pvalue.nc")
-    paint_trend(lat=lat, lon=lon, diff=f0['JJA_trend'].data * 10, level=np.linspace(-0.5, .5, 11), p=f0['JJA_p'].data, title_name='1901-1955', pic_path='/home/sun/paint/ERL/', pic_name="ERL_figs2_v3_Aerosol_Research_CRU_PRECT_JJA_period_linear_trend_1901to1955.pdf")
+    paint_trend(lat=lat, lon=lon, diff=f0['JJA_trend'].data * 10, level=np.linspace(-.5, .5, 11), p=f0['JJA_p'].data, title_name='1901-1955', pic_path='/home/sun/paint/ERL/', pic_name="ERL_figs2_v3_Aerosol_Research_UDEL_PRECT_JJAS_period_linear_trend_1901to1955.pdf")
 #    paint_trend(lat=lat, lon=lon, diff=diff_precip_JJA,  level=np.linspace(-2., 2., 11), p=pvalue["pavlue_GPCC_JJAS_periods"], title_name='1936-1950', pic_path='/home/sun/data/download_data/paint/analysis_EU_aerosol_climate_effect/ERL/', pic_name="ERL_fig1b_v2_Aerosol_Research_GPCC_PRECT_JJA_period_diff_1901to1920_1936to1955.pdf")
 #    paint_trend(lat=lat, lon=lon, diff=diff_precip_JJA, level=np.linspace(-3, 3, 13), p=None, title_name='JJA', pic_path='/home/sun/paint/aerosol_research/',    pic_name="Aerosol_Research_GPCC_PRECT_JJA_period_diff_1900_1960.pdf")
 ##

@@ -171,7 +171,7 @@ def paint_trend(lat, lon, diff, level, p, title_name, pic_path, pic_name):
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=15)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=25)
 
     # Shading for precipitation trend
     im  =  ax.contourf(lon, lat, diff, levels=level, cmap='coolwarm_r', alpha=1, extend='both')
@@ -214,7 +214,7 @@ lat       = f0.lat.data ; lon       = f0.lon.data
 
 def main():
 #    pvalue = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/Aerosol_research_GPCC_JJAS_periods_pvalue.nc")
-    paint_trend(lat=lat, lon=lon, diff=f0['JJAS_trend'].data * 10, level=np.linspace(-0.5, .5, 11), p=f0['JJAS_p'].data, title_name='1901-1955', pic_path='/home/sun/paint/ERL/', pic_name="ERL_fig1a_v4_Aerosol_Research_GPCC_PRECT_JJAS_period_linear_trend_1901to1955.pdf")
+    paint_trend(lat=lat, lon=lon, diff=f0['JJAS_trend'].data * 10, level=np.linspace(-0.5, .5, 11), p=f0['JJA_p'].data, title_name='1901-1955', pic_path='/home/sun/paint/ERL/', pic_name="ERL_fig1a_v4_Aerosol_Research_GPCC_PRECT_JJA_period_linear_trend_1901to1955.pdf")
 #    paint_trend(lat=lat, lon=lon, diff=diff_precip_JJA,  level=np.linspace(-2., 2., 11), p=pvalue["pavlue_GPCC_JJAS_periods"], title_name='1936-1950', pic_path='/home/sun/data/download_data/paint/analysis_EU_aerosol_climate_effect/ERL/', pic_name="ERL_fig1b_v2_Aerosol_Research_GPCC_PRECT_JJA_period_diff_1901to1920_1936to1955.pdf")
 #    paint_trend(lat=lat, lon=lon, diff=diff_precip_JJA, level=np.linspace(-3, 3, 13), p=None, title_name='JJA', pic_path='/home/sun/paint/aerosol_research/',    pic_name="Aerosol_Research_GPCC_PRECT_JJA_period_diff_1900_1960.pdf")
 ##
