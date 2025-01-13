@@ -21,12 +21,12 @@ from module_sun import check_path, add_vector_legend
 
 # ================================ File location =========================================
 
-path_src = '/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/'
+path_src = '/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/'
 file_src = 'Aerosol_Research_CESM_BTAL_BTALnEU_200hPa_streamfunction_velocity_potential.nc'
 
 # ========================================================================================
 
-file0  =  xr.open_dataset(path_src + file_src)
+file0  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1955_trend.nc')
 lat    =  file0.lat.data
 lon    =  file0.lon.data
 
@@ -86,13 +86,18 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
 
     # Tick setting
     # extent
-    lonmin,lonmax,latmin,latmax  =  0,150,10,65
+    lonmin,lonmax,latmin,latmax  =  0,140,10,65
     extent     =  [lonmin,lonmax,latmin,latmax]
 
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,140,8,dtype=int),yticks=np.linspace(0,80,9,dtype=int),nx=1,ny=1,labelsize=12)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,135,10,dtype=int),yticks=np.linspace(0,80,9,dtype=int),nx=1,ny=1,labelsize=10.5)
+
+    # Here I insert calculation about the zonal deviation of the stream function
+    sf_d = sf.copy()
+    for i in range(len(lat)):
+        sf_d[i] = sf_d[i] - np.nanmean(sf[i])
 
     # contourf for the meridional wind v
-    im1  =  ax.contourf(lon, lat, v, levels=np.linspace(-2.5, 2.5, 11), cmap='coolwarm', alpha=0.8, extend='both')
+    im1  =  ax.contourf(lon, lat, sf_d, levels=np.linspace(-10, 10, 11), cmap='coolwarm', alpha=1, extend='both')
 
     # contour for the streamfunction
 #    im2  =  ax.contour(lon, lat, sf, levels=np.linspace(-2.5, 2.5, 11), alpha=1, colors='k',)
@@ -107,16 +112,16 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
     #im2  =  ax.contour(lon, lat, z, 6, colors='green')
     #ax.clabel(im2, inline=True, fontsize=10)
 
-    ax.coastlines(resolution='50m', lw=1.1)
+    ax.coastlines(resolution='110m', lw=1.5)
 
     q  =  ax.quiver(lon, lat, u, v, 
         regrid_shape=15, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
-        scale_units='xy', scale=0.075,        # scale是参考矢量，所以取得越大画出来的箭头就越短
-        units='xy', width=0.35,              # width控制粗细
+        scale_units='xy', scale=2.5     ,        # scale是参考矢量，所以取得越大画出来的箭头就越短
+        units='xy', width=0.55,              # width控制粗细
         transform=proj,
         color='k', headlength = 5, headaxislength = 4, headwidth = 4, alpha=0.8)
 
-    add_vector_legend(ax=ax, q=q, speed=0.1, fontsize=12, location=(0.775, 0), length=0.225, quiver_x=0.875)
+    add_vector_legend(ax=ax, q=q, speed=10, fontsize=12, location=(0.8, 0), length=0.225, quiver_x=0.9)
 
 
     #ax.set_ylabel("Influence of EU emission", fontsize=11)
@@ -130,80 +135,36 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
     plt.savefig('/home/sun/paint/ERL/{}'.format(pic_name))
     #plt.savefig('test.png', dpi=600)
 
-def paint_jjas_diff2(sf, w, p, pic_name, left_title):
-    '''This function paint the Diff aerosol JJA'''
-    proj    =  ccrs.PlateCarree()
-    fig, ax =  plt.subplots(figsize=(20, 15), subplot_kw={'projection': proj})
 
-    # Create the subplot
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
-
-    # Tick setting
-    # extent
-    lonmin,lonmax,latmin,latmax  =  10,150,10,70
-    extent     =  [lonmin,lonmax,latmin,latmax]
-
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,140,8,dtype=int),yticks=np.linspace(10,70,4,dtype=int),nx=1,ny=1,labelsize=12)
-
-    # contourf for the meridional wind v
-    im1  =  ax.contourf(lon, lat, w*100, levels=np.linspace(-0.8, 0.8, 9), cmap='coolwarm', alpha=1, extend='both')
-
-    # contour for the streamfunction
-    im2  =  ax.contour(lon, lat, sf, levels=np.linspace(-15, 15, 16), alpha=1, colors='k',)
-    ax.clabel(im2, fontsize=6, inline=True)
-
-    # stippling
-    #plt.rcParams.update({'hatch.color': 'gray'})
-    #sp  =  ax.contourf(lon, lat, p, levels=[0., 0.1], colors='none', hatches=['///'])
-
-    # contour for the meridional wind
-    #im2  =  ax.contour(lon, lat, z, 6, colors='green')
-    #ax.clabel(im2, inline=True, fontsize=10)
-
-    ax.coastlines(resolution='110m', lw=1.5)
-
-
-    #ax.set_ylabel("Influence of EU emission", fontsize=11)
-
-    ax.set_title(left_title, loc='left', fontsize=12)
-    ax.set_title('150 hPa', loc='right', fontsize=12)
-
-    # ========= add colorbar =================
-    fig.subplots_adjust(top=0.8) 
-    cbar_ax = fig.add_axes([0.2, 0.05, 0.6, 0.03]) 
-    cb  =  fig.colorbar(im1, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
-    cb.ax.set_xticks(np.linspace(-0.8, 0.8, 9))
-    cb.ax.tick_params(labelsize=7.5)
-
-    plt.savefig('/exports/csce/datastore/geos/users/s2618078/paint/analysis_EU_aerosol_climate_effect/ERL/{}'.format(pic_name))
-    #plt.savefig('test.png', dpi=600)
 
 def main():
     # 1. Firstly, calculate difference between two periods for each experiment for the streamfunction
-    ncfile_fx   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fx.monthly.157year_jjas.nc')
-    ncfile_fy   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fy.monthly.157year_jjas.nc')
-    ncfile_dv   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fz.monthly.157year_jjas.nc')
+    ncfile_fx   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected_test4/BTAL_TN2001-Fx.monthly.btal_minus_btalneu_1901_1955_linear_trend.nc').sel(level=300)
+    ncfile_fy   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected_test4/BTAL_TN2001-Fy.monthly.btal_minus_btalneu_1901_1955_linear_trend.nc').sel(level=300)
+    ncfile_psi  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected_test4/BTAL_psidev.monthly.period2.nc').sel(level=300)
 
-    p1 = 1901 ; p2 = 1955
-    x_con, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
-    y_con, y_p_con = calculate_linear_trend(p1, p2, ncfile_fy, 'Fy')
-    z_con, z_p_con = calculate_linear_trend(p1, p2, ncfile_dv, 'div')
-
-    ncfile_fx   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fx.monthly.157year_jjas.nc')
-    ncfile_fy   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fy.monthly.157year_jjas.nc')
-    ncfile_dv   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fz.monthly.157year_jjas.nc')
-
-    p1 = 1901 ; p2 = 1955
-    x_con_btalneu, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
-    y_con_btalneu, y_p_con = calculate_linear_trend(p1, p2, ncfile_fy, 'Fy')
-    z_con_btalneu, z_p_con = calculate_linear_trend(p1, p2, ncfile_dv, 'div')
+#    p1 = 1901 ; p2 = 1955
+#    x_con, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
+#    y_con, y_p_con = calculate_linear_trend(p1, p2, ncfile_fy, 'Fy')
+#    z_con, z_p_con = calculate_linear_trend(p1, p2, ncfile_dv, 'div')
+#
+#    ncfile_fx   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fx.monthly.157year_jjas.nc')
+#    ncfile_fy   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fy.monthly.157year_jjas.nc')
+#    ncfile_dv   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTALnEU_TN2001-Fz.monthly.157year_jjas.nc')
+#
+#    p1 = 1901 ; p2 = 1955
+#    x_con_btalneu, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
+#    y_con_btalneu, y_p_con = calculate_linear_trend(p1, p2, ncfile_fy, 'Fy')
+#    z_con_btalneu, z_p_con = calculate_linear_trend(p1, p2, ncfile_dv, 'div')
 
 
     #sys.exit()
     #print(np.nanmean(z_con))
     #sys.exit()
+#    print(np.nanmean(ncfile_psi['psidev'].data))
+#    sys.exit()
 
-    paint_jjas_diff((z_con - z_con_btalneu)*1e10, (x_con - x_con_btalneu) * 1e2, (y_con - y_con_btalneu) * 1e2, z_p_con, "ERL_fig3b_v2_CESM_BTAL_wave_activity_linear_trend_200.pdf", ' ')
+    paint_jjas_diff(ncfile_psi['psidev'].data*1e-5*55, 55 * (ncfile_fx['Fx'].data) * 1e4, 55 * (ncfile_fy['Fy'].data) * 1e4, None, "ERL_fig4a_v6_CESM_BTAL_wave_activity_linear_trend_300_vector_legend.pdf", '1901-1955')
     print("Paint Success")
 #    paint_jjas_diff2(sf_diff/1e5, w_diff, None, "ERL_fig3_type2_rp_v_to_w_CESM_BTAL_streamfunction_meridional_wind_period_diff_150.pdf", '(a)')
 

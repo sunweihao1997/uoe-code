@@ -12,13 +12,13 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import sys
 
-sys.path.append("/exports/csce/datastore/geos/users/s2618078/uoe-code/module/")
+sys.path.append("/home/sun/uoe-code/module/")
 from module_sun import *
 
-lonmin,lonmax,latmin,latmax  =  40,115,-10,40
+lonmin,lonmax,latmin,latmax  =  40,130,0,40
 extent     =  [lonmin,lonmax,latmin,latmax]
 
-cmap  =  create_ncl_colormap("/exports/csce/datastore/geos/users/s2618078/data/ncl_colormap/MPL_coolwarm.txt",22)
+#cmap  =  create_ncl_colormap("/exports/csce/datastore/geos/users/s2618078/data/ncl_colormap/MPL_coolwarm.txt",22)
 #print(cmap)
 
 # 2.1 Set the colormap for precipitation
@@ -31,6 +31,13 @@ cmap  =  create_ncl_colormap("/exports/csce/datastore/geos/users/s2618078/data/n
 ##newcmp.set_over('#145DA0')
 
 levels = np.array([-1.8, -1.5, -1.2, -0.9, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.9, 1.2, 1.5, 1.8])
+
+data_path = "/home/sun/data/download_data/data/analysis_data/"
+data_file = "CESM_PRECT_BTAL_BTALnEU_JJA_JJAS_1850_2006.nc"
+
+data = xr.open_dataset(data_path + data_file)
+lat  = data.lat.data
+lon  = data.lon.data
 
 def cal_diff_select_period(start1, end1, start2, end2, path, file, variable):
     '''This function calculate variable difference in the given period'''
@@ -46,7 +53,7 @@ def plot_diff_rainfall(var_all, var_EU, var_diff, extent):
     from matplotlib import cm
     from matplotlib.colors import ListedColormap
 
-    ref_file = xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_precipitation_ensemble_mean_231005.nc')
+    ref_file = xr.open_dataset('/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_precipitation_ensemble_mean_231005.nc')
 
     # 2.2 Set the figure
     proj    =  ccrs.PlateCarree()
@@ -123,13 +130,13 @@ def plot_diff_rainfall(var_all, var_EU, var_diff, extent):
     cb.ax.set_xticks(levels)
     cb.ax.tick_params(labelsize=15, rotation=45)
 
-    plt.savefig('/exports/csce/datastore/geos/users/s2618078/paint/analysis_EU_aerosol_climate_effect/prect/1901to1920_1941to1960_difference_precipitation_Indian_continent.pdf', dpi=500)
+    plt.savefig('/home/sun/paint/ERL/1901to1920_1941to1960_difference_precipitation_Indian_continent.pdf', dpi=500)
 
     
 
 
 def main():
-    path0 = '/exports/csce/datastore/geos/users/s2618078/data/analysis_data/analysis_EU_aerosol_climate_effect/'
+    path0 = '/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/'
     all_forcing = cal_diff_select_period(start1=50, end1=70, start2=90, end2=110, path=path0, file='BTAL_precipitation_jja_mean_231005.nc', variable='PRECT_JJA')
     noEU_forcing= cal_diff_select_period(start1=50, end1=70, start2=90, end2=110, path=path0, file='noEU_precipitation_jja_mean_231005.nc', variable='PRECT_JJA')
     diff        = all_forcing - noEU_forcing

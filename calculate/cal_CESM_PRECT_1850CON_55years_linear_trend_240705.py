@@ -48,7 +48,7 @@ def cal_55year_trend(data, varname):
     lon       = data.lon.data
 
     # 1. Extract the JJAS data
-    data_JJAS = data.sel(time=data.time.dt.month.isin([6, 7, 8, 9]), lat=slice(key_area[0], key_area[1]), lon=slice(key_area[2], key_area[3]))
+    data_JJAS = data.sel(time=data.time.dt.month.isin([7, 8, 9]), lat=slice(key_area[0], key_area[1]), lon=slice(key_area[2], key_area[3]))
 
     # 2. Claim the array to save the result
     num_year = int(len(data_JJAS.time.data)/4)

@@ -15,7 +15,7 @@ import cartopy.crs as ccrs
 import cartopy
 from cartopy.util import add_cyclic_point
 import matplotlib.pyplot as plt
-sys.path.append('/exports/csce/datastore/geos/users/s2618078/uoe-code/module/')
+sys.path.append('/home/sun/uoe-code/module/')
 from module_sun import set_cartopy_tick
 from module_sun import check_path, add_vector_legend
 
@@ -26,7 +26,7 @@ file_src = 'Aerosol_Research_CESM_BTAL_BTALnEU_200hPa_streamfunction_velocity_po
 
 # ========================================================================================
 
-file0  =  xr.open_dataset(path_src + file_src)
+file0  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1955_trend.nc')
 lat    =  file0.lat.data
 lon    =  file0.lon.data
 
@@ -180,9 +180,9 @@ def paint_jjas_diff2(sf, w, p, pic_name, left_title):
 
 def main():
     # 1. Firstly, calculate difference between two periods for each experiment for the streamfunction
-    ncfile_fx   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fx.monthly.btal_minus_btalneu_1901_1955_linear_trend.nc').sel(level=300)
-    ncfile_fy   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fy.monthly.btal_minus_btalneu_1901_1955_linear_trend.nc').sel(level=300)
-    ncfile_dv   =  xr.open_dataset('/exports/csce/datastore/geos/users/s2618078/data/wave_activity/BTAL_TN2001-Fz.monthly.btal_minus_btalneu_1901_1955_linear_trend.nc').sel(level=300)
+    ncfile_fx   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1955_trend.nc').sel(level=300)
+    ncfile_fy   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_TN2001-Fy.monthly.1901_1955_trend.nc').sel(level=300)
+    ncfile_dv   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_psidev.monthly.1901_1955_trend.nc').sel(level=300)
 
 #    p1 = 1901 ; p2 = 1955
 #    x_con, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
@@ -202,9 +202,10 @@ def main():
     #sys.exit()
     #print(np.nanmean(z_con))
     #sys.exit()
-    print(np.nanmean(ncfile_dv['div'].data))
+    print(np.nanmean(ncfile_fx['Fx'].data))
+    sys.exit()
 
-    paint_jjas_diff((ncfile_dv['div'].data)*1e11, (ncfile_fx['Fx'].data)*10000, (ncfile_fy['Fy'].data) *10000, None, "ERL_fig3b_v2_CESM_BTAL_wave_activity_linear_trend_200_test3.pdf", '1901-1955')
+    paint_jjas_diff((ncfile_dv['psidev'].data), (ncfile_fx['Fx'].data)*10000, (ncfile_fy['Fy'].data) *10000, None, "ERL_fig3b_v2_CESM_BTAL_wave_activity_linear_trend_200_test3.pdf", '1901-1955')
     print("Paint Success")
 #    paint_jjas_diff2(sf_diff/1e5, w_diff, None, "ERL_fig3_type2_rp_v_to_w_CESM_BTAL_streamfunction_meridional_wind_period_diff_150.pdf", '(a)')
 

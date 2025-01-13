@@ -35,14 +35,18 @@ fera5 = xr.open_dataset("/home/sun/data/process/analysis/ERA5/ERA5_monthly_JJA_w
 
 # 1.2 calculate the JJA mean for CESM
 fcesm_pr = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/CESM_PRECT_BTAL_BTALnEU_JJA_JJAS_1850_2006.nc")
-fcesm_u  = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/U_BTAL_ensemble_mean_JJA_231019.nc")
-fcesm_v  = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/V_BTAL_ensemble_mean_JJA_231019.nc")
+fcesm_u  = xr.open_dataset("/home/sun/data/download_data/data/model_data/ensemble_JJA_corrected/CESM_BTALnEU_JJA_U_ensemble.nc")
+fcesm_v  = xr.open_dataset("/home/sun/data/download_data/data/model_data/ensemble_JJA_corrected/CESM_BTALnEU_JJA_V_ensemble.nc")
 fcesm    = xr.merge([fcesm_pr, fcesm_u, fcesm_v])
 fcesm_sel= fcesm.sel(time=slice(1980, 2005))
 
+#print(fcesm_sel)
+
+
 # 1.2.1 calculate mean for selected period
-fcesm_men= fcesm_sel.mean(dim="time", skipna=True)
-print(fcesm_men)
+# calculate the ensemble mean of CESM U and V
+u = np.average((fcesm_sel.sel(lev=850)['JJA_U_1'].data + fcesm_sel.sel(lev=850)['JJA_U_2'].data + fcesm_sel.sel(lev=850)['JJA_U_3'].data + fcesm_sel.sel(lev=850)['JJA_U_4'].data + fcesm_sel.sel(lev=850)['JJA_U_5'].data + fcesm_sel.sel(lev=850)['JJA_U_6'].data + fcesm_sel.sel(lev=850)['JJA_U_7'].data + fcesm_sel.sel(lev=850)['JJA_U_8'].data) /8, axis=0)
+v = np.average((fcesm_sel.sel(lev=850)['JJA_V_1'].data + fcesm_sel.sel(lev=850)['JJA_V_2'].data + fcesm_sel.sel(lev=850)['JJA_V_3'].data + fcesm_sel.sel(lev=850)['JJA_V_4'].data + fcesm_sel.sel(lev=850)['JJA_V_5'].data + fcesm_sel.sel(lev=850)['JJA_V_6'].data + fcesm_sel.sel(lev=850)['JJA_V_7'].data + fcesm_sel.sel(lev=850)['JJA_V_8'].data) /8, axis=0)
 #sys.exit()
 
 # 1.3 Interpolate ERA5 data to the CESM grid
@@ -69,11 +73,11 @@ extent     =  [lonmin,lonmax,latmin,latmax]
 # --- Tick setting ---
 set_cartopy_tick(ax=ax[0],extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=25)
 
-im1  =  ax[0].contourf(lon, lat, gaussian_filter((fera5_interp['tp'].data * 1e3 ), sigma=0.5), levels=levels, cmap='Blues', alpha=1, extend='max')
+im1  =  ax[0].contourf(lon, lat, gaussian_filter((fera5_interp['tp'].data * 1e3 ), sigma=0.65), levels=levels, cmap='Blues', alpha=1, extend='max')
 
 # Vectors for Wind difference
 q  =  ax[0].quiver(lon, lat, fera5_interp.sel(level=850)['u'].data, fera5_interp.sel(level=850)['v'].data, 
-                    regrid_shape=15, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
+                    regrid_shape=12.5, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
                     scale_units='xy', scale=1.95,        # scale是参考矢量，所以取得越大画出来的箭头就越短
                     units='xy', width=0.35,              # width控制粗细
                     transform=proj,
@@ -82,17 +86,19 @@ q  =  ax[0].quiver(lon, lat, fera5_interp.sel(level=850)['u'].data, fera5_interp
 add_vector_legend(ax=ax[0], q=q, speed=5)
 
 # --- Coast Line ---
-ax[0].coastlines(resolution='110m', lw=1.25)
+ax[0].coastlines(resolution='110m', lw=1.5)
 
 # ------ CESM Poltting ---------
 # --- Tick setting ---
 set_cartopy_tick(ax=ax[1],extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=25)
 
-im2  =  ax[1].contourf(lon, lat, gaussian_filter((fcesm_men['PRECT_JJA_BTAL'].data), sigma=0.5)*1.1, levels=levels, cmap='Blues', alpha=1, extend='max')
+#print(fcesm_sel['PRECT_JJA_BTAL'].data.shape)
+im2  =  ax[1].contourf(lon, lat, gaussian_filter((1.1*np.average(fcesm_sel['PRECT_JJA_BTAL'].data, axis=0)), sigma=0.65), levels=levels, cmap='Blues', alpha=1, extend='max')
 
 # Vectors for Wind difference
-q  =  ax[1].quiver(lon, lat, fcesm_men.sel(lev=850)['U_JJA'].data, fcesm_men.sel(lev=850)['V_JJA'].data, 
-                    regrid_shape=15, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
+print(u.shape)
+q  =  ax[1].quiver(lon, lat, u, v, 
+                    regrid_shape=12.5, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
                     scale_units='xy', scale=1.95,        # scale是参考矢量，所以取得越大画出来的箭头就越短
                     units='xy', width=0.35,              # width控制粗细
                     transform=proj,
@@ -101,18 +107,18 @@ q  =  ax[1].quiver(lon, lat, fcesm_men.sel(lev=850)['U_JJA'].data, fcesm_men.sel
 add_vector_legend(ax=ax[1], q=q, speed=5)
 
 # --- Coast Line ---
-ax[1].coastlines(resolution='110m', lw=1.25)
+ax[1].coastlines(resolution='110m', lw=1.5)
 
 # ------ CESM - ERA5 Poltting ---------
 # --- Tick setting ---
 level2 = np.linspace(-15, 15, 11)
 set_cartopy_tick(ax=ax[2],extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=25)
 
-im3  =  ax[2].contourf(lon, lat, -1*gaussian_filter((fera5_interp['tp'].data * 1e3 - fcesm_men['PRECT_JJA_BTAL'].data)*1.2, sigma=0.5), levels=level2, cmap='coolwarm_r', alpha=1, extend='both')
+im3  =  ax[2].contourf(lon, lat, -1*gaussian_filter((fera5_interp['tp'].data * 1e3 - 1.1*np.average(fcesm_sel['PRECT_JJA_BTAL'].data, axis=0)), sigma=0.65), levels=level2, cmap='coolwarm_r', alpha=1, extend='both')
 
 # Vectors for Wind difference
-q  =  ax[2].quiver(lon, lat, -1*(fera5_interp.sel(level=850)['u'].data - fcesm_men.sel(lev=850)['U_JJA'].data), -1*(fera5_interp.sel(level=850)['v'].data - fcesm_men.sel(lev=850)['V_JJA'].data), 
-                    regrid_shape=15, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
+q  =  ax[2].quiver(lon, lat, -1*(fera5_interp.sel(level=850)['u'].data - u), -1*(fera5_interp.sel(level=850)['v'].data - v), 
+                    regrid_shape=12.5, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
                     scale_units='xy', scale=1.95,        # scale是参考矢量，所以取得越大画出来的箭头就越短
                     units='xy', width=0.35,              # width控制粗细
                     transform=proj,
@@ -121,13 +127,13 @@ q  =  ax[2].quiver(lon, lat, -1*(fera5_interp.sel(level=850)['u'].data - fcesm_m
 add_vector_legend(ax=ax[2], q=q, speed=5)
 
 # --- Coast Line ---
-ax[2].coastlines(resolution='110m', lw=1.25)
+ax[2].coastlines(resolution='110m', lw=1.5)
 
 # ========= add colorbar =================
 fig.subplots_adjust(top=0.8) 
 cbar_ax = fig.add_axes([0.2, 0.05, 0.6, 0.02]) 
-cb  =  fig.colorbar(im3, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
+cb  =  fig.colorbar(im1, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
 #cb.ax.set_xticks(levels)
-cb.ax.tick_params(labelsize=17.5)
+cb.ax.tick_params(labelsize=25)
 
-plt.savefig("/home/sun/paint/ERL/ERL_figs1_model_evaluation_850wind_pr_cb2.pdf")
+plt.savefig("/home/sun/paint/ERL/ERL_figs1_v2_model_evaluation_850wind_pr_cb1.pdf")

@@ -36,6 +36,8 @@ import concurrent.futures
 #import cmasher as cmr
 import matplotlib.patches as mpatches
 from scipy.ndimage import gaussian_filter
+import cartopy.feature as cfeature
+
 
 ref_file0 = xr.open_dataset("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_Moisture_transportation_ensemble_mean_202310.nc")
 
@@ -57,7 +59,7 @@ class calculate_class:
             jjas_mean = np.zeros((150, 96, 144))
 
         if dim_num == 3:
-            file1     = file0.sel(time=ref_file0.time.dt.month.isin([6, 7, 8]))
+            file1     = file0.sel(time=ref_file0.time.dt.month.isin([7, 8, 9]))
             for yyyy in range(150):
                 jjas_mean[yyyy] = np.average(file1[var_name].data[yyyy * 3 : yyyy * 3 + 3], axis=0)
         else:
@@ -72,7 +74,7 @@ class calculate_class:
                     "lon":  (["lon"],  ref_file0['lon'].data),
                 },
                 )
-            file1     = ncfile0.sel(time=ref_file0.time.dt.month.isin([6, 7, 8,]))
+            file1     = ncfile0.sel(time=ref_file0.time.dt.month.isin([7, 8, 9,]))
             for yyyy in range(150):
                 jjas_mean[yyyy] = np.average(file1[var_name].data[yyyy * 3 : yyyy * 3 + 3], axis=0)
         
@@ -135,7 +137,7 @@ class paint_class:
         '''This function is to plot difference among two periods'''
         # 2.2 Set the figure
         proj    =  ccrs.PlateCarree()
-        fig, ax =  plt.subplots(figsize=(15, 12), subplot_kw={'projection': proj})
+        fig, ax =  plt.subplots(figsize=(20, 14), subplot_kw={'projection': proj})
 
         # Tick settings
         #cyclic_data_u, cyclic_lon = add_cyclic_point(diff_u, coord=f0['lon'].data)
@@ -143,26 +145,27 @@ class paint_class:
         cyclic_data_vint, cyclic_lon = add_cyclic_point(diff_vint, coord=f0['lon'].data)
         
         # --- Set range ---
-        lonmin,lonmax,latmin,latmax  =  60,125,5,35
+        lonmin,lonmax,latmin,latmax  =  40,130,0,40
         extent     =  [lonmin,lonmax,latmin,latmax]
-    
+
         # --- Tick setting ---
-        set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(10,60,6,dtype=int),nx=1,ny=1,labelsize=20)
+        set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(50,140,7,dtype=int),yticks=np.linspace(0,50,6,dtype=int),nx=1,ny=1,labelsize=30)
 
 
         level0 = np.array([-1.5, -1, -0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1, 1.5])
-        level0 = np.linspace(-2., 2., 11)
+        level0 = np.linspace(-1., 1., 11)
         im  =  ax.contourf(cyclic_lon, f0['lat'].data, cyclic_data_vint * 1e4, level0, cmap='coolwarm', alpha=1, extend='both')
 
         # --- add patch for key area ---
-        ax.add_patch(mpatches.Rectangle(xy=[72, 20], width=12, height=7.5,linestyle='--',
-                                facecolor='none', edgecolor='grey', linewidth=3.5,
-                                transform=ccrs.PlateCarree()))
+#        ax.add_patch(mpatches.Rectangle(xy=[72, 20], width=12, height=7.5,linestyle='--',
+#                                facecolor='none', edgecolor='grey', linewidth=3.5,
+#                                transform=ccrs.PlateCarree()))
 
         #plt.rcParams.update({'hatch.color': 'gray'})
-        dot  =  ax.contourf(f0['lon'].data, f0['lat'].data, pvalue, levels=[0., 0.12], colors='none', hatches=['.'])
+        dot  =  ax.contourf(f0['lon'].data, f0['lat'].data, pvalue, levels=[0., 0.1], colors='none', hatches=['.'])
 
         ax.coastlines(resolution='110m', lw=1.5)
+        ax.add_feature(cfeature.BORDERS, linewidth=1)
 
         #ax.plot([40,120],[0,0],'--', color='gray')
 
@@ -182,9 +185,9 @@ class paint_class:
         cbar_ax = fig.add_axes([0.2, 0.05, 0.6, 0.03]) 
         cb  =  fig.colorbar(im, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
         cb.ax.set_xticks(level0)
-        cb.ax.tick_params(labelsize=15)
+        cb.ax.tick_params(labelsize=25)
 
-        plt.savefig('/home/sun/paint/ERL/{}_period_diff_JJA_Indian_UV.pdf'.format(plot_name), dpi=350)
+        plt.savefig('/home/sun/paint/ERL/{}_period_diff_JJA_Indian_UV_replot.pdf'.format(plot_name), dpi=350)
 
         #ax.remove()
 
@@ -241,14 +244,14 @@ def main():
 #                                exp_name='BTALnEU',
 #                                dim_num=3,
 #                                )
-    a5 = calculate_class.cal_jjas_mean(file_path=path1, 
-                            file_name='BTAL_moisture_flux_integration_1850_150years.nc', 
+    a5 = calculate_class.cal_jjas_mean(file_path=path0, 
+                            file_name='BTAL_moisture_flux_integration_1850_150years_1000to100.nc', 
                             var_name='mt_vint_BTAL',
                             exp_name='BTAL',
                             dim_num=2,
                             )
-    a6 = calculate_class.cal_jjas_mean( file_path=path1, 
-                            file_name='BTAL_moisture_flux_integration_1850_150years.nc', 
+    a6 = calculate_class.cal_jjas_mean( file_path=path0, 
+                            file_name='BTAL_moisture_flux_integration_1850_150years_1000to100.nc', 
                             var_name='mt_vint_BTALnEU',
                             exp_name='BTALnEU',
                             dim_num=2,
@@ -263,7 +266,7 @@ def main():
     # =================== 2. Calculate difference among two periods =================
     # Directly write to ncfile
 #    print(calculate_class.cal_two_periods_trend(merge_array['mt_vint_BTAL_JJAS'].data - merge_array['mt_vint_BTALnEU_JJAS'].data, 50, 105)[1].shape)
-    ncfile0 = calculate_student_t_test(ncfile=merge_array, period1=1945, period2=1958, lat=merge_array.lat.data, lon=merge_array.lon.data)
+    ncfile0 = calculate_student_t_test(ncfile=merge_array, period1=1945, period2=1965, lat=merge_array.lat.data, lon=merge_array.lon.data)
     #1945-1960
     p1 = 50 ; p2 = 105
     ncfile  =  xr.Dataset(
@@ -274,7 +277,7 @@ def main():
 #        "transport_y_BTALnEU_diff": (["lev", "lat", "lon"], calculate_class.cal_two_periods_difference(merge_array['transport_y_BTALnEU_JJAS'].data)),
         "mt_vint_BTAL_diff": (["lat", "lon"],    calculate_class.cal_two_periods_trend(merge_array['mt_vint_BTAL_JJAS'].data,    p1, p2)[0]),#50-110 good
         "mt_vint_BTALnEU_diff": (["lat", "lon"], calculate_class.cal_two_periods_trend(merge_array['mt_vint_BTALnEU_JJAS'].data, p1, p2)[0]),#50-110 good
-        "p_value": (["lat", "lon"], calculate_class.cal_two_periods_trend(merge_array['mt_vint_BTAL_JJAS'].data - merge_array['mt_vint_BTALnEU_JJAS'].data, p1, p2)[1]),
+        "p_value": (["lat", "lon"], ncfile0['p_value'].data),
     },
     coords={
         "lat":  (["lat"],  ref_file0['lat'].data),
@@ -285,8 +288,8 @@ def main():
 #    ##print(ncfile)
 #    print(" =========== Successfully calculate the period difference ===============")
 #    # =================== 3. Calculate the ttest =====================================
-#    ncfile.attrs['description']  =  "Created on 2023-10-25, This script save the array of the difference in long-term trend among the two experiments. 2023-12-1 update: Correct the wrong time selecting using dt.month method and change to the JJAS mean. 2023-12-3 update: Add ttest among the experiments for the period 1945-1960 fot the vertical integral of moisture transportation."
-#    ncfile.to_netcdf("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend.nc")
+    ncfile.attrs['description']  =  "Created on 2024-12-17 by /home/sun/uoe-code/paint/paint_ERL_fig2b_v6_replot_JJA_BTAL_BTALnEU_diff_moisture_transportation_convergence_linear_trend_241217.py. This file saves the moisture transportation."
+    ncfile.to_netcdf("/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/BTAL_BTALnEU_difference_moisture_transportation_diff_1901to1955_linear_trend_JJA.nc")
 
 
 
@@ -308,10 +311,10 @@ def main():
     lev0 = 850
     paint_class.plot_uv_diff_at_select_lev(f0=file0, diff_u=None, 
                                             diff_v=None, 
-                                            diff_vint=gaussian_filter((file0["mt_vint_BTAL_diff"].data - file0["mt_vint_BTALnEU_diff"].data) * 1e2, sigma=0.8), 
+                                            diff_vint=gaussian_filter((file0["mt_vint_BTAL_diff"].data) * 55 - file0["mt_vint_BTALnEU_diff"].data * 55 , sigma=0.8), 
                                             lev=850, 
                                             plot_name='ERL_fig2b_BTAL_BTALnEU_Water_transportation_linear_trend',
-                                            pvalue=file0["p_value"].data)
+                                            pvalue=file0['p_value'].data)
 
 
 if __name__ == '__main__':

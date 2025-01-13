@@ -239,6 +239,9 @@ def main():
     upper_bound = np.percentile(bootstrap_results, (1 - alpha) * 100)  # 95百分位
     print(lower_bound) ; print(upper_bound)
 #    #sys.exit()
+    print(f"25 percent is {np.percentile(bootstrap_results, 25)}")
+    print(f"75 percent is {np.percentile(bootstrap_results, 75)}")
+    print(f"Mean is {np.average(bootstrap_results)}")
 #
 #    #result_sort = np.sort(result)
 
