@@ -31,7 +31,7 @@ begin
     mt_u_BTAL@_FillValue = value
     mt_v_BTAL@_FillValue = value
     mt_u_BTALnEU@_FillValue = value
-    mt_u_BTALnEU@_FillValue = value
+    mt_v_BTALnEU@_FillValue = value
 
 
     ; Calculate the divergence
@@ -49,12 +49,29 @@ begin
     ptop   = 100
     mt_vint_BTAL     =  new((/1883,96,144/),double)
     mt_vint_BTALnEU  =  new((/1883,96,144/),double)
+    mt_u_integrate_BTAL     =  new((/1883,96,144/),double)
+    mt_u_integrate_BTALnEU  =  new((/1883,96,144/),double)
+    mt_v_integrate_BTAL     =  new((/1883,96,144/),double)
+    mt_v_integrate_BTALnEU  =  new((/1883,96,144/),double)
+
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_vint_BTAL)
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_vint_BTALnEU)
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_u_integrate_BTAL)
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_u_integrate_BTALnEU)
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_v_integrate_BTAL)
+    ;copy_VarCoords(mt_u_BTAL(:, 0, :, :), mt_v_integrate_BTALnEU)
+
+
     do tt = 0, 1882
         print(tt)
         do latt = 0, 95
             do lonn = 0, 143
                 mt_vint_BTAL(tt, latt, lonn)    = vibeta(lev, mt_dv_BTAL(tt, :, latt, lonn), 1, psfc1(tt, latt, lonn), pbot, ptop)
                 mt_vint_BTALnEU(tt, latt, lonn) = vibeta(lev, mt_dv_BTALnEU(tt, :, latt, lonn), 1, psfc2(tt, latt, lonn), pbot, ptop)
+                mt_u_integrate_BTAL(tt, latt, lonn)     = vibeta(lev, mt_u_BTAL(tt, :, latt, lonn), 1, psfc1(tt, latt, lonn), pbot, ptop)
+                mt_u_integrate_BTALnEU(tt, latt, lonn)  = vibeta(lev, mt_u_BTALnEU(tt, :, latt, lonn), 1, psfc2(tt, latt, lonn), pbot, ptop)
+                mt_v_integrate_BTAL(tt, latt, lonn)     = vibeta(lev, mt_v_BTAL(tt, :, latt, lonn), 1, psfc1(tt, latt, lonn), pbot, ptop)
+                mt_v_integrate_BTALnEU(tt, latt, lonn)  = vibeta(lev, mt_v_BTALnEU(tt, :, latt, lonn), 1, psfc2(tt, latt, lonn), pbot, ptop)
             end do
         end do
     end do
@@ -62,7 +79,7 @@ begin
     ;mt_vint_BTALnEU  =  vibeta(lev, mt_dv_BTALnEU, 1, psfc2, pbot, ptop)
     ; =========== 4. Write to ncfile==================
     out_path      =  "/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/"
-    out_file      =  "BTAL_moisture_flux_integration_1850_150years_1000to100.nc"
+    out_file      =  "BTAL_moisture_flux_integration_1850_150years_1000to100_v2.nc"
 
     fout_1        =  addfile(out_path + out_file, "c")
 
@@ -70,6 +87,10 @@ begin
 
     fout_1->mt_vint_BTAL     =  mt_vint_BTAL
     fout_1->mt_vint_BTALnEU  =  mt_vint_BTALnEU
+    fout_1->mt_u_integrate_BTAL     =  mt_u_integrate_BTAL
+    fout_1->mt_u_integrate_BTALnEU  =  mt_u_integrate_BTALnEU
+    fout_1->mt_v_integrate_BTAL     =  mt_v_integrate_BTAL
+    fout_1->mt_v_integrate_BTALnEU  =  mt_v_integrate_BTALnEU
 
     
 end

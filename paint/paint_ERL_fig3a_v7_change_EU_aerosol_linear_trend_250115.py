@@ -65,11 +65,11 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=20)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=15)
 
     # Shading for SLP difference
     im   =  ax.contourf(cyclic_lon, lat, cyclic_data_vint, levels=levels, cmap='coolwarm', alpha=1, extend='both')
-    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.1], colors='none', hatches=['/'])
+#    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.1], colors='none', hatches=['/'])
 
     
     # Vectors for Wind difference
@@ -86,7 +86,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
     #sp  =  ax.contourf(lon, lat, p_value, levels=[0., 0.1], colors='none', hatches=['..'])
 
     # --- Coast Line ---
-    ax.coastlines(resolution='110m', lw=1.5)
+    ax.coastlines(resolution='110m', lw=1)
     ax.add_feature(cfeature.BORDERS, linewidth=1)
 
     # --- title ---

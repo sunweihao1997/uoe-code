@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 sys.path.append('/home/sun/uoe-code/module/')
 from module_sun import set_cartopy_tick
 from module_sun import check_path, add_vector_legend
+from scipy.ndimage import gaussian_filter
 
 # ================================ File location =========================================
 
@@ -52,44 +53,26 @@ def calculate_linear_trend(start, end, input_array, varname):
 
     return trend_data, p_data
 
-def calculate_linear_trend_diff(start, end, input_array, varname1, varname2):
-    '''This calculate the linear trend difference between 2 given data'''
-    from scipy.stats import linregress
 
-    time_dim, lat_dim, lon_dim = input_array.sel(time=slice(start, end))[varname1].shape
-
-    trend_data = np.zeros((lat_dim, lon_dim))
-    p_data     = np.zeros((lat_dim, lon_dim))
-
-    input_data1 = input_array.sel(time=slice(start, end))[varname1].data
-    input_data2 = input_array.sel(time=slice(start, end))[varname2].data
-    #print(input_data.shape)
-
-    for i in range(lat_dim):
-        for j in range(lon_dim):
-            #print(linregress(np.linspace(1, time_dim, time_dim), input_data[:, i, j]))
-            slope, intercept, r_value, p_value, std_err = linregress(np.linspace(1, time_dim, time_dim), input_data1[:, i, j] - input_data2[:, i, j])
-            trend_data[i, j] = slope
-            p_data[i, j]    = p_value
-
-    return trend_data, p_data
 
 # ================================ Painting ==============================================
 
 def paint_jjas_diff(v, w, p, pic_name, left_title):
     '''This function paint the Diff aerosol JJA'''
+    from matplotlib.colors import BoundaryNorm
+
     proj    =  ccrs.PlateCarree()
-    fig, ax =  plt.subplots(figsize=(20, 10), subplot_kw={'projection': proj})
+    fig, ax =  plt.subplots(figsize=(15, 10), subplot_kw={'projection': proj})
 
     # Create the subplot
     fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
 
     # Tick setting
     # extent
-    lonmin,lonmax,latmin,latmax  =  0,140,10,65
+    lonmin,lonmax,latmin,latmax  =  0,160,10,80
     extent     =  [lonmin,lonmax,latmin,latmax]
 
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,135,10,dtype=int),yticks=np.linspace(0,80,9,dtype=int),nx=1,ny=1,labelsize=10.5)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,150,6,dtype=int),yticks=np.linspace(0,80,9,dtype=int),nx=1,ny=1,labelsize=8.5)
 
     # Here I insert calculation about the zonal deviation of the stream function
     #sf_d = sf.copy()
@@ -97,11 +80,17 @@ def paint_jjas_diff(v, w, p, pic_name, left_title):
     #    sf_d[i] = sf_d[i] - np.nanmean(sf[i])
 
     # contourf for the 500 hPa Omega
-    im1  =  ax.contourf(lon, lat, w, levels=np.linspace(-1, 1, 11), cmap='coolwarm', alpha=1, extend='both')
+    level0 = np.array([-1, -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1,])
+    norm = BoundaryNorm(level0, ncolors=256, clip=True)
+    im1  =  ax.contourf(lon, lat, w, levels=level0, cmap='coolwarm', alpha=1, extend='both', norm=norm)
 
     # contour for the v wind
-    im2  =  ax.contour(lon, lat, v, levels=np.linspace(-1.5, 1.5, 11), alpha=1, colors='k',)
+    level0 = np.array([-2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 1.5, 2])
+    im2  =  ax.contour(lon, lat, v, levels=level0, alpha=1, colors='k', linewidths=.75)
     ax.clabel(im2, fontsize=5, inline=True)
+
+    level0 = np.array([-1, -0.8, -0.6, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1,])
+
 
     # stippling
     plt.rcParams.update({'hatch.color': 'gray'})
@@ -112,7 +101,7 @@ def paint_jjas_diff(v, w, p, pic_name, left_title):
     #im2  =  ax.contour(lon, lat, z, 6, colors='green')
     #ax.clabel(im2, inline=True, fontsize=10)
 
-    ax.coastlines(resolution='110m', lw=1.5)
+    ax.coastlines(resolution='110m', color='grey',  lw=.75)
 
     #q  =  ax.quiver(lon, lat, u, v, 
     #    regrid_shape=15, angles='uv',        # regrid_shape这个参数越小，是两门就越稀疏
@@ -130,8 +119,11 @@ def paint_jjas_diff(v, w, p, pic_name, left_title):
     #ax.set_title('Stream-function', loc='right', fontsize=12)
 
     # Add colorbar
-    plt.colorbar(im1, orientation='horizontal')
-
+    fig.subplots_adjust(top=0.8) 
+    cbar_ax = fig.add_axes([0.1, 0.05, 0.9, 0.03]) 
+    cb  =  fig.colorbar(im1, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
+    cb.ax.set_xticks(level0)
+    cb.ax.tick_params(labelsize=7.5)
     plt.savefig('/home/sun/paint/ERL/{}'.format(pic_name))
     #plt.savefig('test.png', dpi=600)
 
@@ -151,7 +143,7 @@ def main():
 
 
 
-    paint_jjas_diff(55*(btal_v_trend[0] - btalneu_v_trend[0]), 55*1e2*(btal_w_trend[0] - btalneu_w_trend[0]), ncfile['p_w'], "ERL_fig4b_v5_CESM_BTAL_v_omega_linear_trend_300_vector_legend.pdf", '1901-1955')
+    paint_jjas_diff(55*gaussian_filter((btal_v_trend[0] - btalneu_v_trend[0]), sigma=1), 55*1e2*gaussian_filter((btal_w_trend[0] - btalneu_w_trend[0]), sigma=1), ncfile['p_w'], "ERL_fig4b_v7_CESM_BTAL_v_omega_linear_trend_300_vector_legend.pdf", '1901-1955')
     print("Paint Success")
 #    paint_jjas_diff2(sf_diff/1e5, w_diff, None, "ERL_fig3_type2_rp_v_to_w_CESM_BTAL_streamfunction_meridional_wind_period_diff_150.pdf", '(a)')
 
