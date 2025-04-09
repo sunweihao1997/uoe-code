@@ -11,6 +11,7 @@ max is 0.00010, unit kg m^-2
 data includens nan
 
 Focus on JJA
+v7 renew: https://befitting-reason-87f.notion.site/ERL-figure3_refine_250220-1a0d5b19b11d804b9377ea848c77d668?pvs=4
 '''
 import xarray as xr
 import numpy as np

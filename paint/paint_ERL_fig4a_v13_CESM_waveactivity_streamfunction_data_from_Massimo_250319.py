@@ -1,13 +1,6 @@
 '''
-2025-2-9
-This script is to paint the difference between two periods in the streamfunction, meridional wind at 200 hPa
-
-Linear trend
-
-v7 test:
-Modify the scale to compare with Massimo result
-
-v10 modified:
+2025-3-19
+This script is to plot the WAF, but the data used if from Massimo
 '''
 import xarray as xr
 import numpy as np
@@ -32,7 +25,7 @@ file_src = 'Aerosol_Research_CESM_BTAL_BTALnEU_200hPa_streamfunction_velocity_po
 
 # ========================================================================================
 
-file0  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity/BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1955_trend.nc')
+file0  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_send_by_Massimo/cesm_allf_fixEU_waf_y_trend_jja.nc')
 lat    =  file0.lat.data
 lon    =  file0.lon.data
 
@@ -93,7 +86,7 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
 
     # Tick setting
     # extent
-    lonmin,lonmax,latmin,latmax  =  -30,240,10,80
+    lonmin,lonmax,latmin,latmax  =  -5,240,10,80
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(0,210,8,dtype=int),yticks=np.linspace(0,80,9,dtype=int),nx=1,ny=1,labelsize=6)
@@ -108,8 +101,10 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
     cyclic_u_vint,   cyclic_lon = add_cyclic_point(u,  coord=lon)
     cyclic_v_vint,   cyclic_lon = add_cyclic_point(v,  coord=lon)
 
+    cyclic_u_vint[cyclic_u_vint<1.5] = np.nan
+
     # contourf for the meridional wind v
-    level0 = np.array([-2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 2.5]) * 10
+    level0 = np.array([-2.5, -2, -1.5, -1, -0.8, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.5, 2, 2.5]) * 10
     norm = BoundaryNorm(level0, ncolors=256, clip=True)
     im1  =  ax.contourf(cyclic_lon, lat, cyclic_sfd_vint, levels=level0, cmap='coolwarm', alpha=1, extend='both', norm=norm, transform=ccrs.PlateCarree())
 
@@ -156,9 +151,9 @@ def paint_jjas_diff(sf, u, v, p, pic_name, left_title):
 
 def main():
     # 1. Firstly, calculate difference between two periods for each experiment for the streamfunction
-    ncfile_fx   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected/BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1915_1941_1955_perioddiff.nc').sel(level=200)
-    ncfile_fy   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected/BTAL_BTALnEU_diff_Z3_for_TN2001-Fy.monthly.1901_1915_1941_1955_perioddiff.nc').sel(level=200)
-    ncfile_psi  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected/BTAL_BTALnEU_diff_Z3_for_psidev.monthly.1901_1915_1941_1955_perioddiff.nc').sel(level=200)
+    ncfile_fx   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_send_by_Massimo/cesm_allf_fixEU_waf_x_trend_jja.nc')
+    ncfile_fy   =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_send_by_Massimo/cesm_allf_fixEU_waf_y_trend_jja.nc')
+    ncfile_psi  =  xr.open_dataset('/home/sun/data/download_data/data/wave_activity_corrected_test4/BTAL_psidev.monthly.period2.nc').sel(level=300)
 
 #    p1 = 1901 ; p2 = 1955
 #    x_con, x_p_con = calculate_linear_trend(p1, p2, ncfile_fx, 'Fx')
@@ -181,7 +176,7 @@ def main():
 #    print(np.nanmean(ncfile_psi['psidev'].data))
 #    sys.exit()
 
-    paint_jjas_diff(ncfile_psi['psidev'].data*1e-7*55, 55 * (ncfile_fx['Fx'].data) * 1e1, 55 * (ncfile_fy['Fy'].data) * 1e1, None, "ERL_fig4a_v11test_CESM_BTAL_wave_activity_period_diff_300_vector_legend.pdf", '1941-1955')
+    paint_jjas_diff(ncfile_psi['psidev'].data*1e-5*55, 55 * (ncfile_fx['px'].data) * 1e2, 55 * (ncfile_fy['py'].data) * 1e2, None, "ERL_fig4a_v13_CESM_BTAL_wave_activity_data_from_Massimo.pdf", '1941-1955')
     print("Paint Success")
 #    paint_jjas_diff2(sf_diff/1e5, w_diff, None, "ERL_fig3_type2_rp_v_to_w_CESM_BTAL_streamfunction_meridional_wind_period_diff_150.pdf", '(a)')
 
