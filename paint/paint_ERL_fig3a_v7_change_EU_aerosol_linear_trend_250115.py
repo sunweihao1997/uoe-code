@@ -53,7 +53,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # 2.2 Set the figure
     proj    =  ccrs.PlateCarree()
-    fig, ax =  plt.subplots(figsize=(15, 7), subplot_kw={'projection': proj})
+    fig, ax =  plt.subplots(figsize=(15, 10), subplot_kw={'projection': proj})
 
     # Tick settings
     cyclic_data_vint, cyclic_lon = add_cyclic_point(diff_slp, coord=lon)
@@ -61,11 +61,11 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
 
     # --- Set range ---
-    lonmin,lonmax,latmin,latmax  =  -15, 50, 35, 75
+    lonmin,lonmax,latmin,latmax  =  -15, 50, 25, 70
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=15)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=20)
 
     # Shading for SLP difference
     im   =  ax.contourf(cyclic_lon, lat, cyclic_data_vint, levels=levels, cmap='coolwarm', alpha=1, extend='both')
@@ -87,14 +87,14 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # --- Coast Line ---
     ax.coastlines(resolution='110m', lw=1)
-    ax.add_feature(cfeature.BORDERS, linewidth=1)
+    #ax.add_feature(cfeature.BORDERS, linewidth=1)
 
     # --- title ---
     ax.set_title(left_title, loc='left', fontsize=15.5)
     ax.set_title(right_title, loc='right', fontsize=15.5)
 
     # ========= add colorbar =================
-    cb  =  fig.colorbar(im, shrink=0.5, pad=0.1, orientation='horizontal')
+    cb  =  fig.colorbar(im, shrink=0.75, pad=0.1, orientation='horizontal')
 
 
     plt.savefig(out_path + pic_name)
@@ -235,7 +235,7 @@ class plot_function:
         im2  =  ax.contourf(cyclic_lon, src_file['lat'].data, cyclic_data * 10e6, np.linspace(30,130,6), cmap=plot_function.newcmp, alpha=1, extend='both')
 
         ax.coastlines(resolution='110m', lw=1.5)
-        ax.add_feature(cfeature.BORDERS, linewidth=1)
+        #ax.add_feature(cfeature.BORDERS, linewidth=1)
 
         #bodr = cartopy.feature.NaturalEarthFeature(category='cultural', name='admin_0_boundary_lines_land', scale='50m', facecolor='none', alpha=0.7)
         #ax.add_feature(bodr, linestyle='--', edgecolor='k', alpha=1)

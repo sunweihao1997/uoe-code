@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 #import cmasher as cmr
 from scipy.ndimage import gaussian_filter
+import cartopy.feature as cfeature
+
 
 sys.path.append('/home/sun/uoe-code/module/')
 from module_sun import set_cartopy_tick
@@ -27,11 +29,9 @@ from module_sun import check_path, add_vector_legend
 
 file_path = '/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/'
 
-psl_btal    = xr.open_dataset(file_path + 'BTAL_SLP_jja_mean_241211.nc')
-psl_btalneu = xr.open_dataset(file_path + 'noEU_SLP_jja_mean_241211.nc')
+psl_btal    = xr.open_dataset(file_path + 'BTAL_TS_ensemble_mean_JJA_231017.nc')
+psl_btalneu = xr.open_dataset(file_path + 'BTALnEU_TS_ensemble_mean_JJA_231018.nc')
 #print(psl_btal)
-#print(np.nanmean(psl_btal['SLP_JJA'].data))
-#sys.exit()
 
 
 # ------------------- Lat/Lon -----------------------------------
@@ -87,14 +87,37 @@ def calculate_linear_trend_diff(start, end, input_array_btal, input_array_btalne
 
     return trend_data, p_data
 
-p1 = 1901 ; p2 = 1955
-psl_con, psl_p_con = calculate_linear_trend(p1, p2, psl_btal,    'SLP_JJA')
-psl_neu, psl_p_neu = calculate_linear_trend(p1, p2, psl_btalneu, 'SLP_JJA')
-psl_dif, psl_p_dif = calculate_linear_trend_diff(1903, 1957, psl_btal, psl_btalneu, 'SLP_JJA')
+p1 = 1905 ; p2 = 1955
+psl_con, psl_p_con = calculate_linear_trend(p1, p2, psl_btal,    'TS_JJA')
+psl_neu, psl_p_neu = calculate_linear_trend(p1, p2, psl_btalneu, 'TS_JJA')
+psl_dif, psl_p_dif = calculate_linear_trend_diff(p1, p2, psl_btal, psl_btalneu, 'TS_JJA')
 
+# calculate the student-t test
+def calculate_student_t_test(ncfile1, ncfile2, period1, period2, lat, lon, varname):
+    # calculate t-test for the given period
+    from scipy import stats
+
+    ncfile_select1 = ncfile1.sel(time=slice(period1, period2))
+    ncfile_select2 = ncfile2.sel(time=slice(period1, period2))
+    p_value       = np.zeros((len(lat), len(lon)))
+    for ii in range(len(lat)):
+        for jj in range(len(lon)):
+            a,b  = stats.ttest_ind(ncfile_select1[varname].data[:, ii, jj], ncfile_select2[varname].data[:, ii, jj], equal_var=False)
+            p_value[ii, jj] = b
+
+    ncfile = xr.DataArray(
+                            data=p_value,
+                            dims=["lat", "lon"],
+                            coords=dict(
+                                lon=(["lon"], lon),
+                                lat=(["lat"], lat),
+                            ),
+                        )
+
+    return ncfile
+
+p1 = 1940 ; p2 = 1960
 ncfile_p = psl_p_dif
-
-
 
 #print(ncfile_p)
 #sys.exit("Complete!")
@@ -120,7 +143,14 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # ------------ 2. Paint the Pic --------------------------
     from matplotlib import cm
-    from matplotlib.colors import ListedColormap
+    from matplotlib.colors import ListedColormap,LinearSegmentedColormap
+
+    viridis = cm.get_cmap('coolwarm')
+    newcolors = viridis(np.linspace(0., 1, 256))
+    midpoint = 128  # 设置白色所在的索引（可以调整）
+    newcolors[midpoint] = [1, 1, 1, 1]  # RGBA 表示白色
+#    newcmp = ListedColormap(newcolors)
+    newcmp = LinearSegmentedColormap.from_list("custom_coolwarm", newcolors)
 
     # 2.2 Set the figure
     proj    =  ccrs.PlateCarree()
@@ -131,7 +161,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
     cyclic_data_p,    cyclic_lon = add_cyclic_point(pvalue, coord=lon)
 
 
-   # --- Set range ---
+    # --- Set range ---
     lonmin,lonmax,latmin,latmax  =  -15, 50, 25, 70
     extent     =  [lonmin,lonmax,latmin,latmax]
 
@@ -140,7 +170,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # Shading for SLP difference
     im   =  ax.contourf(cyclic_lon, lat, cyclic_data_vint, levels=levels, cmap='coolwarm', alpha=1, extend='both')
-    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.2], colors='none', hatches=['.'])
+    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.14], colors='none', hatches=['.'])
 
     
     # Vectors for Wind difference
@@ -157,11 +187,8 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
     #sp  =  ax.contourf(lon, lat, p_value, levels=[0., 0.1], colors='none', hatches=['..'])
 
     # --- Coast Line ---
-    import cartopy.feature as cfeature
-
     ax.coastlines(resolution='110m', lw=1.5)
     #ax.add_feature(cfeature.BORDERS, linewidth=1)
-
 
     # --- title ---
     ax.set_title(left_title, loc='left', fontsize=15.5)
@@ -169,7 +196,6 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # ========= add colorbar =================
     cb  =  fig.colorbar(im, shrink=0.75, pad=0.1, orientation='horizontal')
-
 
     plt.savefig(out_path + pic_name)
 
@@ -182,11 +208,12 @@ def main():
     out_path  = "/home/sun/paint/ERL/"
     level1    =  np.array([-70, -60, -50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70,])
     level2    =  np.array([-28, -24, -20, -16, -12, -8,-4,0, 4, 8, 12, 16, 20, 24, 28], dtype=int)
-    level2    =  np.linspace(-25, 25, 11) / 100
+    #level2    =  np.array([-0.5, -0.4, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5])
+    level2 = np.linspace(-0.5, 0.5, 11)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_diff"],    diff_u=data_file["u_btal_diff"], diff_v=data_file["v_btal_diff"] , left_title='BTAL', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL.pdf", p=data_file['psl_btal_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btalneu_diff"], diff_u=data_file["u_btalneu_diff"], diff_v=data_file["v_btalneu_diff"] , left_title='BTALnEU', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTALnEU.pdf", p=data_file['psl_btalneu_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_btalneu_diff"],    diff_u=data_file["u_btal_btalneu_diff"], diff_v=data_file["v_btal_btalneu_diff"] , left_title='(a)', right_title='BTAL - BTALnEU', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL_BTALnEU.pdf", p=data_file['psl_btal_btalneu_diffp'], level=level2)
-    plot_diff_slp_wind(diff_slp=55*gaussian_filter((psl_con - psl_neu), sigma=1)/100,left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig3d_v7_JJAS_BTAL_minus_BTALnEU_PSL_linear_trend.pdf", level=level2, pvalue=ncfile_p)
+    plot_diff_slp_wind(diff_slp=55*gaussian_filter((psl_con - psl_neu), sigma=1),left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig3c_v7_JJA_BTAL_BTALnEU_TS_linear_trend.pdf", level=level2, pvalue=ncfile_p)
 #    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_ALL', out_path=out_path,             pic_name="Aerosol_research_ERL_s5a_BTAL_BTALnEU_TS_linear_trend.pdf", level=level2, pvalue=None)
 #    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_neu), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_noEU', out_path=out_path,            pic_name="Aerosol_research_ERL_s5b_BTAL_BTALnEU_TS_linear_trend.pdf", level=level2, pvalue=None)
 

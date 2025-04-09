@@ -1,6 +1,9 @@
 '''
 2024-7-19
 This script is to calculate the linear trend of TS over Europe area between BTAL and BTALnEU
+
+v9 renew:
+change variable to geopotential height z 850
 '''
 import xarray as xr
 import numpy as np
@@ -25,19 +28,26 @@ from module_sun import check_path, add_vector_legend
 
 # ------------------- PSL data ----------------------------------
 
-file_path = '/home/sun/data/download_data/data/analysis_data/analysis_EU_aerosol_climate_effect/'
+file_path = '/home/sun/data/download_data/data/model_data/ensemble_JJA_corrected/'
 
-psl_btal    = xr.open_dataset(file_path + 'BTAL_SLP_jja_mean_241211.nc')
-psl_btalneu = xr.open_dataset(file_path + 'noEU_SLP_jja_mean_241211.nc')
+z850_btal    = xr.open_dataset(file_path + 'CESM_BTAL_JJA_Z3_ensemble.nc').sel(lev=500)
+z850_btalneu = xr.open_dataset(file_path + 'CESM_BTALnEU_JJA_Z3_ensemble.nc').sel(lev=500)
+
+# calculate multiple members mean
+z850_btal["JJA_Z3_1"].data = (z850_btal["JJA_Z3_1"].data + z850_btal["JJA_Z3_2"].data + z850_btal["JJA_Z3_3"].data + z850_btal["JJA_Z3_4"].data + z850_btal["JJA_Z3_5"].data + z850_btal["JJA_Z3_6"].data + z850_btal["JJA_Z3_7"].data + z850_btal["JJA_Z3_8"].data) / 8
+z850_btalneu["JJA_Z3_1"].data = (z850_btalneu["JJA_Z3_1"].data + z850_btalneu["JJA_Z3_2"].data + z850_btalneu["JJA_Z3_3"].data + z850_btalneu["JJA_Z3_4"].data + z850_btalneu["JJA_Z3_5"].data + z850_btalneu["JJA_Z3_6"].data + z850_btalneu["JJA_Z3_7"].data + z850_btalneu["JJA_Z3_8"].data) / 8
 #print(psl_btal)
 #print(np.nanmean(psl_btal['SLP_JJA'].data))
-#sys.exit()
+#sys.exit("Pass Test")
+z850_btal["JJA_Z3"] = z850_btal["JJA_Z3_1"]
+z850_btalneu["JJA_Z3"] = z850_btalneu["JJA_Z3_1"]
+print(z850_btalneu["JJA_Z3"])
 
 
 # ------------------- Lat/Lon -----------------------------------
 
-lat         = psl_btal.lat.data
-lon         = psl_btal.lon.data
+lat         = z850_btal.lat.data
+lon         = z850_btal.lon.data
 
 # =================== End of File Location ======================
 
@@ -88,10 +98,16 @@ def calculate_linear_trend_diff(start, end, input_array_btal, input_array_btalne
     return trend_data, p_data
 
 p1 = 1901 ; p2 = 1955
-psl_con, psl_p_con = calculate_linear_trend(p1, p2, psl_btal,    'SLP_JJA')
-psl_neu, psl_p_neu = calculate_linear_trend(p1, p2, psl_btalneu, 'SLP_JJA')
-psl_dif, psl_p_dif = calculate_linear_trend_diff(1903, 1957, psl_btal, psl_btalneu, 'SLP_JJA')
+psl_con, psl_p_con = calculate_linear_trend(p1, p2, z850_btal,    'JJA_Z3')
+psl_neu, psl_p_neu = calculate_linear_trend(p1, p2, z850_btalneu, 'JJA_Z3')
+psl_dif, psl_p_dif = calculate_linear_trend_diff(1901, 1955, z850_btal, z850_btalneu, 'JJA_Z3')
 
+
+
+
+#psl_btal    = xr.open_dataset(file_path + 'PSL_BTAL_ensemble_mean_JJAS_231020.nc')
+#psl_btalneu = xr.open_dataset(file_path + 'PSL_BTALnEU_ensemble_mean_JJAS_231020.nc')
+#p1 = 1945 ; p2 = 1960
 ncfile_p = psl_p_dif
 
 
@@ -140,7 +156,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # Shading for SLP difference
     im   =  ax.contourf(cyclic_lon, lat, cyclic_data_vint, levels=levels, cmap='coolwarm', alpha=1, extend='both')
-    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.2], colors='none', hatches=['.'])
+    dot  =  ax.contourf(cyclic_lon, lat, cyclic_data_p, levels=[0., 0.1], colors='none', hatches=['.'])
 
     
     # Vectors for Wind difference
@@ -182,11 +198,11 @@ def main():
     out_path  = "/home/sun/paint/ERL/"
     level1    =  np.array([-70, -60, -50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70,])
     level2    =  np.array([-28, -24, -20, -16, -12, -8,-4,0, 4, 8, 12, 16, 20, 24, 28], dtype=int)
-    level2    =  np.linspace(-25, 25, 11) / 100
+    level2    =  np.linspace(-3, 3, 11)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_diff"],    diff_u=data_file["u_btal_diff"], diff_v=data_file["v_btal_diff"] , left_title='BTAL', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL.pdf", p=data_file['psl_btal_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btalneu_diff"], diff_u=data_file["u_btalneu_diff"], diff_v=data_file["v_btalneu_diff"] , left_title='BTALnEU', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTALnEU.pdf", p=data_file['psl_btalneu_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_btalneu_diff"],    diff_u=data_file["u_btal_btalneu_diff"], diff_v=data_file["v_btal_btalneu_diff"] , left_title='(a)', right_title='BTAL - BTALnEU', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL_BTALnEU.pdf", p=data_file['psl_btal_btalneu_diffp'], level=level2)
-    plot_diff_slp_wind(diff_slp=55*gaussian_filter((psl_con - psl_neu), sigma=1)/100,left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig3d_v7_JJAS_BTAL_minus_BTALnEU_PSL_linear_trend.pdf", level=level2, pvalue=ncfile_p)
+    plot_diff_slp_wind(diff_slp=55*gaussian_filter((psl_con - psl_neu), sigma=1),left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig3d_v8_JJA_BTAL_BTALnEU_z850_linear_trend.pdf", level=level2, pvalue=ncfile_p)
 #    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_ALL', out_path=out_path,             pic_name="Aerosol_research_ERL_s5a_BTAL_BTALnEU_TS_linear_trend.pdf", level=level2, pvalue=None)
 #    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_neu), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_noEU', out_path=out_path,            pic_name="Aerosol_research_ERL_s5b_BTAL_BTALnEU_TS_linear_trend.pdf", level=level2, pvalue=None)
 
