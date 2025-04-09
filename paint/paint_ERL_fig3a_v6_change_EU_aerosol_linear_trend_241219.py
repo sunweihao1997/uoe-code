@@ -61,7 +61,7 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
 
     # --- Set range ---
-    lonmin,lonmax,latmin,latmax  =  -15, 50, 35, 75
+    lonmin,lonmax,latmin,latmax  =  -15, 50, 20, 70
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
