@@ -42,8 +42,8 @@ begin
     ; Set two periods
     period1_A = 1901 
     period1_B = 1915
-    period2_A = 1945
-    period2_B = 1960
+    period2_A = 1941
+    period2_B = 1955
 
     ; 3. Data pre-process
     ;----------------------------------------------------------------- BTAL --------------------------------------------------------------------------------
@@ -484,11 +484,11 @@ begin
     NN@units = "1/s^2"
 
     outpath =  "/home/sun/data/download_data/data/wave_activity_corrected/"
-    ncFx =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1915_1945_1960_perioddiff.nc","c")
-    ncFy =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fy.monthly.1901_1915_1945_1960_perioddiff.nc","c")
-    ncFz =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fz.monthly.1901_1915_1945_1960_perioddiff.nc","c")
-    ncpsidev = addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_psidev.monthly.1901_1915_1945_1960_perioddiff.nc","c")
-    ncNN =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_NN.monthly.1901_1915_1945_1960_perioddiff.nc","c")
+    ncFx =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fx.monthly.1901_1915_1941_1955_perioddiff.nc","c")
+    ncFy =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fy.monthly.1901_1915_1941_1955_perioddiff.nc","c")
+    ncFz =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_TN2001-Fz.monthly.1901_1915_1941_1955_perioddiff.nc","c")
+    ncpsidev = addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_psidev.monthly.1901_1915_1941_1955_perioddiff.nc","c")
+    ncNN =     addfile(outpath + "BTAL_BTALnEU_diff_Z3_for_NN.monthly.1901_1915_1941_1955_perioddiff.nc","c")
 
     ncFx->Fx = Fx
     ncFy->Fy = Fy
