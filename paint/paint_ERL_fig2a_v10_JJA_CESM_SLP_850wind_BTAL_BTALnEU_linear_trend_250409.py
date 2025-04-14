@@ -1,23 +1,8 @@
 '''
-2023-12-28
-This script serves for the first picture of Fig2, including SLP and wind at 850 hPa
+2025-4-9
 
-This script will plot three pictures:
-period difference in BTAL
-period difference in BTALnEU
-influence of EU aerosol in the above difference
-
-2023-1-3 modified:
-After meeting with Massimo I realized that the circulation is not consistent with the moisture transportation
-I need check the data 
-
-v4 modified:
-change to linear trend
-
-v5 modified:
-change to huaibei server
-
-v7: change new data
+Version Information:
+https://www.notion.so/Points-With-Meeting-with-Massimot-1c1d5b19b11d8024bc2bff0b15f0f374?pvs=4
 '''
 import xarray as xr
 import numpy as np
@@ -34,6 +19,7 @@ from scipy import stats
 #import cmasher as cmr
 from scipy.ndimage import gaussian_filter
 import cartopy.feature as cfeature
+from matplotlib.ticker import FormatStrFormatter
 
 sys.path.append('/home/sun/uoe-code/module/')
 from module_sun import set_cartopy_tick
@@ -171,7 +157,8 @@ def plot_diff_slp_wind(diff_slp, diff_u, diff_v, left_title, right_title, out_pa
     cbar_ax = fig.add_axes([0.1, 0.05, 0.9, 0.03]) 
     cb  =  fig.colorbar(im, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
     cb.ax.set_xticks(levels)
-    cb.ax.tick_params(labelsize=20)
+    cb.ax.tick_params(labelsize=25)
+    cb.ax.xaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 
     plt.savefig(out_path + pic_name)
 
@@ -184,12 +171,12 @@ def main():
     out_path  = "/home/sun/paint/ERL/"
     level1    =  np.array([-70, -60, -50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70,])
     level2    =  np.array([-28, -24, -20, -16, -12, -8,-4,0, 4, 8, 12, 16, 20, 24, 28], dtype=int)
-    level2    =  np.array([-3, -2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2, 2.5, 3])
+    level2    =  np.array([-6, -3, -1, -0.5, -0.3, -0.2, -0.1, -0.05, 0.05, 0.1, 0.2, 0.3, 0.5, 1, 3, 6])
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_diff"],    diff_u=data_file["u_btal_diff"], diff_v=data_file["v_btal_diff"] , left_title='BTAL', right_title='JJA', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL.pdf", p=data_file['psl_btal_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btalneu_diff"], diff_u=data_file["u_btalneu_diff"], diff_v=data_file["v_btalneu_diff"] , left_title='BTALnEU', right_title='JJA', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTALnEU.pdf", p=data_file['psl_btalneu_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_btalneu_diff"],    diff_u=data_file["u_btal_btalneu_diff"], diff_v=data_file["v_btal_btalneu_diff"] , left_title='(a)', right_title='BTAL - BTALnEU', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL_BTALnEU.pdf", p=data_file['psl_btal_btalneu_diffp'], level=level2)
 #    level2    =  np.array([-5, -4.5, -4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
-    plot_diff_slp_wind(diff_slp=5.5*gaussian_filter((psl_con - psl_neu), sigma=1), diff_u=(u_con - u_neu)*55, diff_v=(v_con - v_neu)*55,  left_title='(a)', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig2a_v7_CESM_slp_850wind_diff_JJA_linear_trend_1901to1955_test.pdf", level=level2)
+    plot_diff_slp_wind(diff_slp=5.5*gaussian_filter((psl_con - psl_neu), sigma=1), diff_u=(u_con - u_neu)*55, diff_v=(v_con - v_neu)*55,  left_title='(a)', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="ERL_fig2a_v10_CESM_slp_850wind_diff_JJA_linear_trend_1901to1955_test.pdf", level=level2)
     print('Finished')
 
 if __name__ == '__main__':
