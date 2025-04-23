@@ -14,7 +14,6 @@ import cartopy
 from cartopy.util import add_cyclic_point
 import matplotlib.pyplot as plt
 from scipy import stats
-import cmasher as cmr
 from scipy.ndimage import gaussian_filter
 
 sys.path.append('/exports/csce/datastore/geos/users/s2618078/uoe-code/module/')
@@ -91,17 +90,17 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
 
     # 2.2 Set the figure
     proj    =  ccrs.PlateCarree()
-    fig, ax =  plt.subplots(figsize=(15, 7), subplot_kw={'projection': proj})
+    fig, ax =  plt.subplots(figsize=(15, 10), subplot_kw={'projection': proj})
 
     # Tick settings
     cyclic_data_vint, cyclic_lon = add_cyclic_point(diff_slp, coord=lon)
 
     # --- Set range ---
-    lonmin,lonmax,latmin,latmax  =  -20, 50, 25, 70
+    lonmin,lonmax,latmin,latmax  =  -15, 50, 40, 70
     extent     =  [lonmin,lonmax,latmin,latmax]
 
     # --- Tick setting ---
-    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=15.5)
+    set_cartopy_tick(ax=ax,extent=extent,xticks=np.linspace(-15, 45, 5,dtype=int), yticks=np.linspace(20, 70, 6, dtype=int),nx=1,ny=1,labelsize=25)
 
     # Shading for SLP difference
     im   =  ax.contourf(cyclic_lon, lat, cyclic_data_vint, levels=levels, cmap='coolwarm_r', alpha=1, extend='both')
@@ -129,8 +128,8 @@ def plot_diff_slp_wind(diff_slp, left_title, right_title, out_path, pic_name, le
     ax.set_title(right_title, loc='right', fontsize=15.5)
 
     # ========= add colorbar =================
-    cb  =  fig.colorbar(im, shrink=0.5, pad=0.1, orientation='horizontal')
-
+    cb  =  fig.colorbar(im, shrink=1, pad=0.1, orientation='horizontal')
+    cb.ax.tick_params(labelsize=12.5)
 
     plt.savefig(out_path + pic_name)
 
@@ -144,12 +143,13 @@ def main():
     level1    =  np.array([-70, -60, -50, -40, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70,])
     level2    =  np.array([-28, -24, -20, -16, -12, -8,-4,0, 4, 8, 12, 16, 20, 24, 28], dtype=int)
     level2    =  np.linspace(-10, 10, 11)
+    level2    =  np.array([-300, -200, -100, -50, -30, -25, -20, -15, -10, 10, 15, 20, 25, 30, 50, 100, 200, 300]) / 100
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_diff"],    diff_u=data_file["u_btal_diff"], diff_v=data_file["v_btal_diff"] , left_title='BTAL', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL.pdf", p=data_file['psl_btal_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btalneu_diff"], diff_u=data_file["u_btalneu_diff"], diff_v=data_file["v_btalneu_diff"] , left_title='BTALnEU', right_title='JJAS', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTALnEU.pdf", p=data_file['psl_btalneu_diffp'], level=level1)
 #    plot_diff_slp_wind(diff_slp=data_file["psl_btal_btalneu_diff"],    diff_u=data_file["u_btal_btalneu_diff"], diff_v=data_file["v_btal_btalneu_diff"] , left_title='(a)', right_title='BTAL - BTALnEU', out_path=out_path, pic_name="Aerosol_research_ERL_2a_BTAL_BTALnEU.pdf", p=data_file['psl_btal_btalneu_diffp'], level=level2)
-    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con - psl_neu), sigma=0.5),left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="Aerosol_research_ERL_s5c_BTAL_BTALnEU_SLP_linear_trend.pdf", level=level2, pvalue=None)
-    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_ALL', out_path=out_path,             pic_name="Aerosol_research_ERL_s5a_BTAL_BTALnEU_SLP_linear_trend.pdf", level=level2, pvalue=None)
-    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_neu), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_noEU', out_path=out_path,            pic_name="Aerosol_research_ERL_s5b_BTAL_BTALnEU_SLP_linear_trend.pdf", level=level2, pvalue=None)
+#    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con - psl_neu), sigma=0.5),left_title='1901-1955 Linear Trend', right_title='CESM_ALL - CESM_noEU', out_path=out_path, pic_name="Aerosol_research_ERL_s5c_BTAL_BTALnEU_SLP_linear_trend.pdf", level=level2, pvalue=None)
+    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_con), sigma=1),          left_title='1901-1955 Linear Trend', right_title='CESM_ALL', out_path=out_path,             pic_name="Aerosol_research_ERL_s5_BTAL_SLP_linear_trend.pdf", level=level2, pvalue=None)
+#    plot_diff_slp_wind(diff_slp=1e1*gaussian_filter((psl_neu), sigma=0.5),          left_title='1901-1955 Linear Trend', right_title='CESM_noEU', out_path=out_path,            pic_name="Aerosol_research_ERL_s5b_BTAL_BTALnEU_SLP_linear_trend.pdf", level=level2, pvalue=None)
 
 
 if __name__ == '__main__':
