@@ -176,11 +176,7 @@ def paint_trend(lat, lon, diff, level, p, title_name, pic_path, pic_name):
     fig, ax =  plt.subplots(figsize=(20, 14), subplot_kw={'projection': proj})
 
     viridis = cm.get_cmap('coolwarm_r')
-    newcolors = viridis(np.linspace(0., 1, 256))
-    midpoint = 128  # 设置白色所在的索引（可以调整）
-    newcolors[midpoint] = [1, 1, 1, 1]  # RGBA 表示白色
-#    newcmp = ListedColormap(newcolors)
-    newcmp = LinearSegmentedColormap.from_list("custom_coolwarm", newcolors)
+
 
     # --- Set range ---
     #lonmin,lonmax,latmin,latmax  =  65,93,5,35
@@ -214,11 +210,11 @@ def paint_trend(lat, lon, diff, level, p, title_name, pic_path, pic_name):
     # ========= add colorbar =================
     fig.subplots_adjust(top=0.8) 
     cbar_ax = fig.add_axes([0.05, 0.05, 0.95, 0.03]) 
-    cb  =  fig.colorbar(im, cax=cbar_ax, shrink=0.5, pad=0.01, orientation='horizontal')
+    cb  =  fig.colorbar(im, cax=cbar_ax, shrink=1, pad=0.01, orientation='horizontal')
     #cb.ax.set_xticks(levels)
-    cb.ax.tick_params(labelsize=22)
+    cb.ax.tick_params(labelsize=20)
     cb.set_ticks(level)  # 自定义刻度位置
-    cb.set_ticklabels(level, fontsize=22)  # 自定义标签
+    cb.set_ticklabels(level, fontsize=20)  # 自定义标签
 
     plt.savefig(pic_path + pic_name)
 ##
